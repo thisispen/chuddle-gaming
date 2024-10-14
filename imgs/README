@@ -1,0 +1,19 @@
+# Chud Bullet Hell
+
+Chud Bullet Hell is a CCP-themed bullet hell game where the user navigates through a menu to play, configure controls, or exit. The game is built using SDL2, SDL_ttf, and SDL_image, featuring moving stars and random Chinese text for added effect.
+
+## Features
+- **Main Menu** with options to:
+  - Play the game
+  - Configure controls (Arrow keys, WASD, J for A, K for B)
+  - Exit
+- **Randomized Star Animation** that smoothly moves stars across the screen
+- **CCP-Themed Background** with red backdrop and random edgy Chinese text
+
+## Requirements
+
+Before running the game, ensure you have the following dependencies installed on your system:
+
+### Linux (Ubuntu)
+```bash
+sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev
