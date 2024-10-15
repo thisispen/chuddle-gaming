@@ -5,8 +5,8 @@
 #include <cstdlib>          // for the random generator functions
 #include <ctime>            // for seeding the random generator
 
-const int SCREEN_WIDTH = 640;       // this is the width of the screen, can be optimized later
-const int SCREEN_HEIGHT = 480;      // height of the screen
+const int SCREEN_WIDTH = 500;       // this is the width of the screen, can be optimized later
+const int SCREEN_HEIGHT = 720;      // height of the screen
 const int TOTAL_MENU_ITEMS = 3;     // only 3 items on the main menu
 const int TOTAL_SETTINGS_ITEMS = 2; // only 2 items in the settings menu
 const float STAR_SPEED = 1.0f;      // default speed for moving the stars
@@ -15,41 +15,37 @@ const float STAR_SPEED = 1.0f;      // default speed for moving the stars
 void renderCenteredText(SDL_Renderer *renderer, const char *text, SDL_Color color, TTF_Font *font, int windowWidth, int y)
 {
     SDL_Surface *surface = TTF_RenderUTF8_Solid(font, text, color);
-    // we make a surface out of the font, text, and color
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    // then we create a texture from that surface
 
     SDL_Rect destRect;
-    // this is the rectangle we'll use to display the text
-    destRect.w = surface->w;                     // get the width from the surface
-    destRect.h = surface->h;                     // get the height from the surface
-    destRect.x = (windowWidth - destRect.w) / 2; // center the text horizontally
-    destRect.y = y;                              // y position is passed as a parameter
+    destRect.w = surface->w;
+    destRect.h = surface->h;
+    destRect.x = (windowWidth - destRect.w) / 2;
+    destRect.y = y;
 
-    SDL_FreeSurface(surface);                              // free the surface to avoid memory leaks
-    SDL_RenderCopy(renderer, texture, nullptr, &destRect); // copy the texture to the renderer
-    SDL_DestroyTexture(texture);                           // destroy the texture to avoid memory leaks
+    SDL_FreeSurface(surface);
+    SDL_RenderCopy(renderer, texture, nullptr, &destRect);
+    SDL_DestroyTexture(texture);
 }
 
 // function to load textures from an image file
 SDL_Texture *loadTexture(const char *path, SDL_Renderer *renderer)
 {
-    SDL_Surface *loadedSurface = IMG_Load(path); // load the image from file
-    if (loadedSurface == nullptr)                // check if the image loaded correctly
+    SDL_Surface *loadedSurface = IMG_Load(path);
+    if (loadedSurface == nullptr)
     {
         std::cerr << "Failed to load image " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
         return nullptr;
     }
 
-    SDL_Texture *newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface); // create a texture from the loaded surface
-    if (newTexture == nullptr)                                                       // check if the texture was created
+    SDL_Texture *newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+    if (newTexture == nullptr)
     {
         std::cerr << "Failed to create texture from " << path << "! SDL Error: " << SDL_GetError() << std::endl;
     }
 
-    SDL_FreeSurface(loadedSurface); // free the surface to avoid memory leaks
-
-    return newTexture; // return the texture
+    SDL_FreeSurface(loadedSurface);
+    return newTexture;
 }
 
 // structure to represent each star
@@ -62,22 +58,19 @@ struct Star
 // function to move each star smoothly towards its target position
 void moveStar(Star &star)
 {
-    float dx = star.targetX - star.x;         // calculate the difference in x position
-    float dy = star.targetY - star.y;         // calculate the difference in y position
-    float distance = sqrt(dx * dx + dy * dy); // get the distance between the current position and the target
+    float dx = star.targetX - star.x;
+    float dy = star.targetY - star.y;
+    float distance = sqrt(dx * dx + dy * dy);
 
-    // if the distance is small enough, the star has reached its target
     if (distance < STAR_SPEED)
     {
         star.x = star.targetX;
         star.y = star.targetY;
-        // generate a new random target position
         star.targetX = rand() % SCREEN_WIDTH;
         star.targetY = rand() % SCREEN_HEIGHT;
     }
     else
     {
-        // move the star towards the target
         star.x += (dx / distance) * STAR_SPEED;
         star.y += (dy / distance) * STAR_SPEED;
     }
@@ -86,14 +79,14 @@ void moveStar(Star &star)
 // function to render the CCP background (red with moving stars)
 void renderCCPBackground(SDL_Renderer *renderer, SDL_Texture *starTexture, Star stars[], int numStars)
 {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // bright red background
-    SDL_RenderClear(renderer);                        // clear the screen with the red color
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_RenderClear(renderer);
 
-    for (int i = 0; i < numStars; i++) // for each star
+    for (int i = 0; i < numStars; i++)
     {
-        moveStar(stars[i]);                                             // move the star
-        SDL_Rect starRect = {(int)stars[i].x, (int)stars[i].y, 30, 30}; // 30x30 star size
-        SDL_RenderCopy(renderer, starTexture, nullptr, &starRect);      // render the star on the screen
+        moveStar(stars[i]);
+        SDL_Rect starRect = {(int)stars[i].x, (int)stars[i].y, 30, 30};
+        SDL_RenderCopy(renderer, starTexture, nullptr, &starRect);
     }
 }
 
@@ -108,71 +101,52 @@ void renderRandomChineseText(SDL_Renderer *renderer, TTF_Font *font, SDL_Color c
         "共产主义永存"      // "Communism forever"
     };
 
-    srand((unsigned)time(0));     // seed the random generator
-    int randomIndex = rand() % 5; // pick a random phrase
+    srand((unsigned)time(0));
+    int randomIndex = rand() % 5;
 
     renderCenteredText(renderer, randomTexts[randomIndex], color, font, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT);
 }
 
-// Settings menu function
-void showSettingsMenu(SDL_Renderer *renderer, TTF_Font *font, SDL_Color yellow, SDL_Texture *starTexture, Star stars[], int numStars)
+// Title screen function
+void showTitleScreen(SDL_Renderer *renderer, TTF_Font *font, SDL_Color color, SDL_Texture *titleTexture)
 {
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    if (titleTexture)
+    {
+        SDL_Rect titleRect = {(SCREEN_WIDTH - 400) / 2, 100, 400, 100}; // Center title image
+        SDL_RenderCopy(renderer, titleTexture, nullptr, &titleRect);
+    }
+    else
+    {
+        renderCenteredText(renderer, "Chud Bullet Hell", color, font, SCREEN_WIDTH, 200);
+    }
+
+    renderCenteredText(renderer, "Press Enter to Start", color, font, SCREEN_WIDTH, 300);
+    SDL_RenderPresent(renderer);
+
     bool quit = false;
     SDL_Event e;
-    int selectedItem = 0;
 
-    const char *settingsItems[TOTAL_SETTINGS_ITEMS] = {
-        "Control Configuration",
-        "Back"};
-
+    // Wait for Enter key to start
     while (!quit)
     {
-        while (SDL_PollEvent(&e) != 0) // handle events
+        while (SDL_PollEvent(&e) != 0)
         {
             if (e.type == SDL_QUIT)
             {
                 quit = true;
+                exit(0);
             }
             else if (e.type == SDL_KEYDOWN)
             {
-                switch (e.key.keysym.sym)
+                if (e.key.keysym.sym == SDLK_RETURN)
                 {
-                case SDLK_DOWN:
-                    selectedItem = (selectedItem + 1) % TOTAL_SETTINGS_ITEMS; // navigate menu items
-                    break;
-                case SDLK_UP:
-                    selectedItem = (selectedItem - 1 + TOTAL_SETTINGS_ITEMS) % TOTAL_SETTINGS_ITEMS;
-                    break;
-                case SDLK_RETURN:
-                    if (selectedItem == 0) // Control Configuration
-                    {
-                        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-                        SDL_RenderClear(renderer);
-                        renderCenteredText(renderer, "Controls: Arrow Keys/WASD, J for A, K for B", yellow, font, SCREEN_WIDTH, 200);
-                        SDL_RenderPresent(renderer);
-                        SDL_Delay(3000); // pause for 3 seconds
-                    }
-                    else if (selectedItem == 1) // Back
-                    {
-                        quit = true;
-                    }
-                    break;
+                    quit = true;
                 }
             }
         }
-
-        renderCCPBackground(renderer, starTexture, stars, numStars); // render the background
-        renderRandomChineseText(renderer, font, yellow);             // render random Chinese text
-
-        // render menu items
-        for (int i = 0; i < TOTAL_SETTINGS_ITEMS; i++)
-        {
-            SDL_Color color = (i == selectedItem) ? SDL_Color{255, 255, 255, 255} : yellow; // highlight the selected item
-            std::string settingsText = std::string(i == selectedItem ? "--> " : "") + std::string(settingsItems[i]);
-            renderCenteredText(renderer, settingsText.c_str(), color, font, SCREEN_WIDTH, 200 + i * 50);
-        }
-
-        SDL_RenderPresent(renderer); // present the rendered content
     }
 }
 
@@ -210,11 +184,10 @@ void showMainMenu(SDL_Renderer *renderer, TTF_Font *font, SDL_Color yellow, SDL_
                     if (selectedItem == 0) // Play
                     {
                         std::cout << "Start Game!" << std::endl;
-                        // game logic here
                     }
                     else if (selectedItem == 1) // Settings
                     {
-                        showSettingsMenu(renderer, font, yellow, starTexture, stars, numStars);
+                        // Show settings menu (not implemented here)
                     }
                     else if (selectedItem == 2) // Exit
                     {
@@ -225,13 +198,12 @@ void showMainMenu(SDL_Renderer *renderer, TTF_Font *font, SDL_Color yellow, SDL_
             }
         }
 
-        renderCCPBackground(renderer, starTexture, stars, numStars); // render the background
-        renderRandomChineseText(renderer, font, yellow);             // render random Chinese text
+        renderCCPBackground(renderer, starTexture, stars, numStars);
+        renderRandomChineseText(renderer, font, yellow);
 
-        // render menu items
         for (int i = 0; i < TOTAL_MENU_ITEMS; i++)
         {
-            SDL_Color color = (i == selectedItem) ? SDL_Color{255, 255, 255, 255} : yellow; // highlight the selected item
+            SDL_Color color = (i == selectedItem) ? SDL_Color{255, 255, 255, 255} : yellow;
             std::string menuText = std::string(i == selectedItem ? "--> " : "") + std::string(menuItems[i]);
             renderCenteredText(renderer, menuText.c_str(), color, font, SCREEN_WIDTH, 200 + i * 50);
         }
@@ -242,14 +214,12 @@ void showMainMenu(SDL_Renderer *renderer, TTF_Font *font, SDL_Color yellow, SDL_
 
 int main(int argc, char *argv[])
 {
-    // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    // Initialize SDL_ttf
     if (TTF_Init() == -1)
     {
         std::cerr << "SDL_ttf could not initialize! TTF_Error: " << TTF_GetError() << std::endl;
@@ -257,7 +227,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Initialize SDL_image
     if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG))
     {
         std::cerr << "SDL_image could not initialize! IMG_Error: " << IMG_GetError() << std::endl;
@@ -266,8 +235,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Create window
-    SDL_Window *window = SDL_CreateWindow("Menu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window *window = SDL_CreateWindow("Menu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == nullptr)
     {
         std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
@@ -276,7 +244,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Create renderer
+    SDL_SetWindowResizable(window, SDL_FALSE); // Prevent window resizing
+
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == nullptr)
     {
@@ -287,7 +256,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Load font
     TTF_Font *font = TTF_OpenFont("imgs/NotoSansTC-Regular.ttf", 24);
     if (font == nullptr)
     {
@@ -299,7 +267,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Load the star texture
     SDL_Texture *starTexture = loadTexture("imgs/Yellow-Star.png", renderer);
     if (starTexture == nullptr)
     {
@@ -312,8 +279,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Create stars array
-    Star stars[8]; // 8 stars
+    SDL_Texture *titleTexture = loadTexture("imgs/Title.png", renderer); // optional title image
+    Star stars[8];                                                       // create 8 stars
     for (int i = 0; i < 8; i++)
     {
         stars[i].x = rand() % SCREEN_WIDTH;
@@ -324,11 +291,12 @@ int main(int argc, char *argv[])
 
     SDL_Color yellow = {255, 255, 0, 255}; // Yellow color for text
 
-    // Show the main menu
-    showMainMenu(renderer, font, yellow, starTexture, stars, 8);
+    showTitleScreen(renderer, font, yellow, titleTexture); // Show title screen
 
-    // Clean up
+    showMainMenu(renderer, font, yellow, starTexture, stars, 8); // Show main menu
+
     SDL_DestroyTexture(starTexture);
+    SDL_DestroyTexture(titleTexture);
     TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
